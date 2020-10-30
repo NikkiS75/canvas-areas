@@ -1,12 +1,6 @@
 <template>
     <div>
-        <canvas width="1000" height="600" ref="canvasArea" class="canvas" @mousedown="start($event)"></canvas>
-        <div>current: {{mouse.x}},{{mouse.y}} <br>
-            start: {{startCoords.x}},{{startCoords.y}} <br>
-            state: {{state}} <br>
-            create: {{create}}
-
-        </div>
+        <canvas :width="windowWidth" :height="windowHeight" ref="canvasArea" class="canvas" @mousedown="start($event)"></canvas>
     </div>
 </template>
 
@@ -31,94 +25,104 @@
             activeShape: 0,
             corner: '',
             create: true,
-            state: ''
+            state: '',
+            over:false,
         }),
         methods: {
             start(e) {
                 let canvasPosition = this.$refs.canvasArea.getBoundingClientRect();
                 this.startCoords.x = e.pageX - canvasPosition.left
                 this.startCoords.y = e.pageY - canvasPosition.top
+                this.mouse.x = e.pageX - canvasPosition.left
+                this.mouse.y = e.pageY - canvasPosition.top
                 if (this.shapes.length >= 1) {
-                    for (let i = this.shapes.length - 1; i >= 0; i--) {
-                        if (this.startCoords.x > this.shapes[i].leftTopX   &&
-                            this.startCoords.x < this.shapes[i].rightTopX  &&
-                            this.startCoords.y > this.shapes[i].leftTopY  &&
-                            this.startCoords.y < this.shapes[i].bottomLeftY )
+                    for (let i = 0; i <= this.shapes.length-1; i++) {
+                        if (this.startCoords.x >= this.shapes[i].leftTopX   &&
+                            this.startCoords.x <= this.shapes[i].rightTopX  &&
+                            this.startCoords.y >= this.shapes[i].leftTopY  &&
+                            this.startCoords.y <= this.shapes[i].bottomLeftY )
                         {
-                            this.active(e)
-                            if (((this.shapes[this.activeShape].bottomLeftX - 5 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].bottomLeftX + 5)) &&
-                                ((this.shapes[this.activeShape].bottomLeftY - 5 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomLeftY + 5))) {
+                            requestAnimationFrame(this.allshapes);
+                            if (((this.shapes[this.activeShape].bottomLeftX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].bottomLeftX + 10)) &&
+                                ((this.shapes[this.activeShape].bottomLeftY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomLeftY + 10))) {
                                 this.corner = 'left-bottom'
+                                this.shapes[this.activeShape].active = true
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
                             }else
-                            if (((this.shapes[this.activeShape].leftTopX - 5 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].leftTopX + 5)) &&
-                                ((this.shapes[this.activeShape].leftTopY - 5 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].leftTopY + 5))) {
+                            if (((this.shapes[this.activeShape].leftTopX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].leftTopX + 10)) &&
+                                ((this.shapes[this.activeShape].leftTopY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].leftTopY + 10))) {
                                 this.corner = 'left-top'
+                                this.shapes[this.activeShape].active = true
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
                             } else
-                            if (((this.shapes[this.activeShape].bottomRightX - 5 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].bottomRightX + 5)) &&
-                                ((this.shapes[this.activeShape].bottomRightY - 5 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomRightY + 5))) {
+                            if (((this.shapes[this.activeShape].bottomRightX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].bottomRightX + 10)) &&
+                                ((this.shapes[this.activeShape].bottomRightY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomRightY + 10))) {
                                 this.corner = 'right-bottom'
+                                this.shapes[this.activeShape].active = true
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
 
                             } else
-                            if (((this.shapes[this.activeShape].rightTopX - 5 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].rightTopX + 5)) &&
-                                ((this.shapes[this.activeShape].rightTopY - 5 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].rightTopY + 5))) {
+                            if (((this.shapes[this.activeShape].rightTopX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].rightTopX + 10)) &&
+                                ((this.shapes[this.activeShape].rightTopY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].rightTopY + 10))) {
                                 this.corner = 'right-top'
+                                this.shapes[this.activeShape].active = true
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
                             } else{
+                                this.activeShape = i
+                                this.shapes[this.activeShape].active = true
+                                for (let i = this.shapes.length - 1; i >= 0; i--) {
+                                    if (i != this.activeShape){
+                                        this.shapes[i].active = false
+                                        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                                        this.allshapes()
+                                    }}
                             this.canvas.onmousemove = null
                             this.canvas.onmouseup = null}
                             return
-                        } else  {
-                            if (((this.shapes[this.activeShape].bottomLeftX - 3 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].bottomLeftX + 3)) &&
-                                ((this.shapes[this.activeShape].bottomLeftY - 3 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomLeftY + 3))) {
+                        } else {
+                            if (((this.shapes[this.activeShape].bottomLeftX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].bottomLeftX + 10)) &&
+                                ((this.shapes[this.activeShape].bottomLeftY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomLeftY + 10))) {
                                 this.corner = 'left-bottom'
+                                this.shapes[this.activeShape].state = 'active'
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
-                            }else
-                            if (((this.shapes[this.activeShape].leftTopX - 3 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].leftTopX + 3)) &&
+                            } else if (((this.shapes[this.activeShape].leftTopX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].leftTopX + 10)) &&
                                 ((this.shapes[this.activeShape].leftTopY - 3 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].leftTopY + 3))) {
+                                    (this.startCoords.y <= this.shapes[this.activeShape].leftTopY + 10))) {
                                 this.corner = 'left-top'
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
-                            } else
-                            if (((this.shapes[this.activeShape].bottomRightX - 3 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].bottomRightX + 3)) &&
-                                ((this.shapes[this.activeShape].bottomRightY - 3 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomRightY + 3))) {
+                            } else if (((this.shapes[this.activeShape].bottomRightX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].bottomRightX + 10)) &&
+                                ((this.shapes[this.activeShape].bottomRightY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].bottomRightY + 10))) {
                                 this.corner = 'right-bottom'
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
 
-                            } else
-                            if (((this.shapes[this.activeShape].rightTopX - 3 <= this.startCoords.x) &&
-                                (this.startCoords.x <= this.shapes[this.activeShape].rightTopX + 3)) &&
-                                ((this.shapes[this.activeShape].rightTopY - 3 <= this.startCoords.y) &&
-                                    (this.startCoords.y <= this.shapes[this.activeShape].rightTopY + 3))) {
+                            } else if (((this.shapes[this.activeShape].rightTopX - 10 <= this.startCoords.x) &&
+                                (this.startCoords.x <= this.shapes[this.activeShape].rightTopX + 10)) &&
+                                ((this.shapes[this.activeShape].rightTopY - 10 <= this.startCoords.y) &&
+                                    (this.startCoords.y <= this.shapes[this.activeShape].rightTopY + 10))) {
                                 this.corner = 'right-top'
                                 this.canvas.onmousemove = this.change
                                 this.canvas.onmouseup = this.stopChange
-                            } else{
-                                for (let i = this.shapes.length - 1; i >= 0; i--) {
-                                    if  (this.shapes[i].state != 'overlap'){
-                                    this.shapes[i].state = 'neutral'}}
+                            } else {
                                 this.canvas.onmousemove = this.draw
                                 this.canvas.onmouseup = this.end
                             }
@@ -137,11 +141,155 @@
                 this.mouse.y = e.pageY - canvasPosition.top
                 if (this.shapes.length >= 1) {
                     for (let i = this.shapes.length-1; i >=0; i--) {
-                        if (this.mouse.x > this.shapes[i].leftTopX   &&
-                            (this.mouse.x < this.shapes[i].rightTopX)  &&
-                            this.mouse.y > this.shapes[i].leftTopY  &&
-                            this.mouse.y < this.shapes[i].bottomLeftY ) {
-                            this.state = 'overlap'
+                        if( this.intersect(
+                            this.startCoords.x,
+                            this.startCoords.y,
+                            this.startCoords.x,
+                            this.mouse.y,
+                            this.shapes[i].leftTopX,
+                            this.shapes[i].leftTopY,
+                            this.shapes[i].bottomLeftX,
+                            this.shapes[i].bottomLeftY)
+                            ||this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY )
+                            ||this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY)
+                            ||this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY) // left-line
+                            ||
+                            this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY)
+                            || this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY)
+                            ||this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY)
+                            ||  this.intersect(
+                                this.startCoords.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY  //top-line
+                            )
+                            || this.intersect(
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY)
+                            || this.intersect(
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY)
+                            ||this.intersect(
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY)
+                            ||  this.intersect(
+                                this.mouse.x,
+                                this.startCoords.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY  //right-line
+                            )
+                            || this.intersect(
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY)
+                            || this.intersect(
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY)
+                            ||this.intersect(
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY)
+                            ||  this.intersect(
+                                this.startCoords.x,
+                                this.mouse.y,
+                                this.mouse.x,
+                                this.mouse.y,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY  //bottom-line
+                            )) {
+                            this.over = true
                             this.shape(
                                 this.startCoords.x,
                                 this.startCoords.y,
@@ -151,12 +299,13 @@
                                 this.mouse.y,
                                 this.startCoords.x,
                                 this.mouse.y,
-                                this.state,
+                                false,
+                                this.over,
                             )
                             requestAnimationFrame(this.allshapes);
                             break;
                         } else {
-                            this.state = 'neutral'
+                            this.over = false
                             this.shape(
                                 this.startCoords.x,
                                 this.startCoords.y,
@@ -166,13 +315,14 @@
                                 this.mouse.y,
                                 this.startCoords.x,
                                 this.mouse.y,
-                                this.state
+                                false,
+                                this.over
                             )
                             requestAnimationFrame(this.allshapes);
                         }
                     }
                 } else {
-                    this.state = 'neutral'
+                    this.over = false
                     this.shape(
                         this.startCoords.x,
                         this.startCoords.y,
@@ -182,7 +332,8 @@
                         this.mouse.y,
                         this.startCoords.x,
                         this.mouse.y,
-                        this.state)
+                        false,
+                        this.over)
                     requestAnimationFrame(this.allshapes);
                 }
             },
@@ -201,7 +352,8 @@
                             bottomRightY: this.mouse.y,
                             bottomLeftX: this.startCoords.x,
                             bottomLeftY: this.mouse.y,
-                            state: this.state
+                            active: false,
+                            over: this.over
                         })
                     }
                 } else {
@@ -217,7 +369,8 @@
                             bottomRightY: this.mouse.y,
                             bottomLeftX: this.startCoords.x,
                             bottomLeftY: this.mouse.y,
-                            state: this.state
+                            active: false,
+                            over: false
                         })
                     }
 
@@ -236,36 +389,13 @@
                         this.shapes[i].bottomRightY,
                         this.shapes[i].bottomLeftX,
                         this.shapes[i].bottomLeftY,
-                        this.shapes[i].state)
+                        this.shapes[i].active,
+                        this.shapes[i].over
+                    )
                 }
             },
-            active(e) {
-                this.create = !this.create
-                let canvasPosition = this.$refs.canvasArea.getBoundingClientRect();
-                this.mouse.x = e.pageX - canvasPosition.left
-                this.mouse.y = e.pageY - canvasPosition.top
-                for (let i = this.shapes.length - 1; i >= 0; i--) {
-                        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                    if ((this.mouse.x > this.shapes[i].leftTopX) &&
-                        this.mouse.x < this.shapes[i].rightTopX  &&
-                        this.mouse.y > this.shapes[i].leftTopY  &&
-                        this.mouse.y < this.shapes[i].bottomLeftY) {
-                            this.activeShape = i
-                        if ( this.shapes[this.activeShape].state == 'active'){
-                            this.shapes[this.activeShape].state = 'neutral'}
-                        else{
-                            this.state = 'active'
-                            this.shapes[this.activeShape].state = this.state
-                        }
-                            requestAnimationFrame(this.allshapes);
-                        break
-                        }
-                    requestAnimationFrame(this.allshapes);
-                }
-            },
-            shape(x1, y1, x2, y2, x3, y3, x4, y4, state) {
-
-                if (state == 'active') {
+            shape(x1, y1, x2, y2, x3, y3, x4, y4, active, over) {
+                if (active == true) {
                     this.context.beginPath()
                     this.context.arc(x1, y1, 3, 0, 2 * Math.PI)
                     this.context.strokeStyle = 'green'
@@ -282,20 +412,57 @@
                     this.context.arc(x4, y4, 3, 0, 2 * Math.PI)
                     this.context.strokeStyle = 'green'
                     this.context.stroke();
+                    this.context.beginPath()
+                    this.context.moveTo(x1, y1);
+                    this.context.lineTo(x2, y2)
+                    this.context.lineTo(x3, y3)
+                    this.context.lineTo(x4, y4)
+                    this.context.lineTo(x1, y1)
+                    this.context.closePath()
+                    this.context.lineWidth = 3;
+                    this.context.strokeStyle = 'green'
+                    this.context.stroke();
                 }
-                this.context.beginPath()
-                this.context.moveTo(x1, y1);
-                this.context.lineTo(x2, y2)
-                this.context.lineTo(x3, y3)
-                this.context.lineTo(x4, y4)
-                this.context.lineTo(x1, y1)
-                this.context.closePath()
-                this.context.lineWidth = 3;
-                if (state == 'overlap')
-                {this.context.strokeStyle = 'red'}
-                if (state == 'neutral')
-                {this.context.strokeStyle = 'black'}
-                this.context.stroke();
+                if (over == true) {
+                    this.context.beginPath()
+                    this.context.arc(x1, y1, 3, 0, 2 * Math.PI)
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                    this.context.beginPath()
+                    this.context.arc(x2, y2, 3, 0, 2 * Math.PI)
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                    this.context.beginPath()
+                    this.context.arc(x3, y3, 3, 0, 2 * Math.PI)
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                    this.context.beginPath()
+                    this.context.arc(x4, y4, 3, 0, 2 * Math.PI)
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                    this.context.beginPath()
+                    this.context.moveTo(x1, y1);
+                    this.context.lineTo(x2, y2)
+                    this.context.lineTo(x3, y3)
+                    this.context.lineTo(x4, y4)
+                    this.context.lineTo(x1, y1)
+                    this.context.closePath()
+                    this.context.lineWidth = 3;
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                }
+                if (active == false && over == false){
+                    this.context.beginPath()
+                    this.context.moveTo(x1, y1);
+                    this.context.lineTo(x2, y2)
+                    this.context.lineTo(x3, y3)
+                    this.context.lineTo(x4, y4)
+                    this.context.lineTo(x1, y1)
+                    this.context.closePath()
+                    this.context.lineWidth = 3;
+                    this.context.strokeStyle = 'black'
+                    this.context.stroke();
+                }
             },
 
             change(e) {
@@ -322,43 +489,187 @@
                 }
                 if (this.shapes.length >= 1) {
                     for (let i =  this.shapes.length - 1; i >= 0; i--) {
-                        if (this.mouse.x > this.shapes[i].leftTopX   &&
-                            this.mouse.x < this.shapes[i].rightTopX  &&
-                            this.mouse.y > this.shapes[i].leftTopY  &&
-                            this.mouse.y < this.shapes[i].bottomLeftY ) {
-                            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                            this.state = 'overlap'
-                            this.shape(
+                           // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                            if (i != this.activeShape){
+                            if( this.intersect(
                                 this.shapes[this.activeShape].leftTopX,
                                 this.shapes[this.activeShape].leftTopY,
-                                this.shapes[this.activeShape].rightTopX,
-                                this.shapes[this.activeShape].rightTopY,
-                                this.shapes[this.activeShape].bottomRightX,
-                                this.shapes[this.activeShape].bottomRightY,
                                 this.shapes[this.activeShape].bottomLeftX,
                                 this.shapes[this.activeShape].bottomLeftY,
-                                this.state)
-                            this.allshapes()
-                            break
-                        } else {
-
-                            this.state = 'active'
-                            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                            this.shape(
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].bottomLeftX,
+                                this.shapes[i].bottomLeftY)
+                             ||this.intersect(
                                 this.shapes[this.activeShape].leftTopX,
                                 this.shapes[this.activeShape].leftTopY,
-                                this.shapes[this.activeShape].rightTopX,
-                                this.shapes[this.activeShape].rightTopY,
-                                this.shapes[this.activeShape].bottomRightX,
-                                this.shapes[this.activeShape].bottomRightY,
                                 this.shapes[this.activeShape].bottomLeftX,
                                 this.shapes[this.activeShape].bottomLeftY,
-                                this.state)
-                            this.allshapes()
-                        }
-                    }
+                                this.shapes[i].leftTopX,
+                                this.shapes[i].leftTopY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY )
+                              ||this.intersect(
+                                this.shapes[this.activeShape].leftTopX,
+                                this.shapes[this.activeShape].leftTopY,
+                                this.shapes[this.activeShape].bottomLeftX,
+                                this.shapes[this.activeShape].bottomLeftY,
+                                this.shapes[i].rightTopX,
+                                this.shapes[i].rightTopY,
+                                this.shapes[i].bottomRightX,
+                                this.shapes[i].bottomRightY)
+                               ||this.intersect(
+                                    this.shapes[this.activeShape].leftTopX,
+                                    this.shapes[this.activeShape].leftTopY,
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    this.shapes[i].bottomRightX,
+                                    this.shapes[i].bottomRightY,
+                                    this.shapes[i].bottomLeftX,
+                                    this.shapes[i].bottomLeftY) // left-line
+                                ||
+                                this.intersect(
+                                        this.shapes[this.activeShape].leftTopX,
+                                        this.shapes[this.activeShape].leftTopY,
+                                        this.shapes[this.activeShape].rightTopX,
+                                        this.shapes[this.activeShape].rightTopY,
+                                        this.shapes[i].leftTopX,
+                                        this.shapes[i].leftTopY,
+                                        this.shapes[i].bottomLeftX,
+                                        this.shapes[i].bottomLeftY)
+                                || this.intersect(
+                                        this.shapes[this.activeShape].leftTopX,
+                                        this.shapes[this.activeShape].leftTopY,
+                                        this.shapes[this.activeShape].rightTopX,
+                                        this.shapes[this.activeShape].rightTopY,
+                                        this.shapes[i].leftTopX,
+                                        this.shapes[i].leftTopY,
+                                        this.shapes[i].rightTopX,
+                                        this.shapes[i].rightTopY)
+                                ||this.intersect(
+                                        this.shapes[this.activeShape].leftTopX,
+                                        this.shapes[this.activeShape].leftTopY,
+                                        this.shapes[this.activeShape].rightTopX,
+                                        this.shapes[this.activeShape].rightTopY,
+                                        this.shapes[i].rightTopX,
+                                        this.shapes[i].rightTopY,
+                                        this.shapes[i].bottomRightX,
+                                        this.shapes[i].bottomRightY)
+                                ||  this.intersect(
+                                        this.shapes[this.activeShape].leftTopX,
+                                        this.shapes[this.activeShape].leftTopY,
+                                        this.shapes[this.activeShape].rightTopX,
+                                        this.shapes[this.activeShape].rightTopY,
+                                        this.shapes[i].bottomRightX,
+                                        this.shapes[i].bottomRightY,
+                                        this.shapes[i].bottomLeftX,
+                                        this.shapes[i].bottomLeftY  //top-line
+                                    )
+                                || this.intersect(
+                                    this.shapes[this.activeShape].rightTopX,
+                                    this.shapes[this.activeShape].rightTopY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].leftTopX,
+                                    this.shapes[i].leftTopY,
+                                    this.shapes[i].bottomLeftX,
+                                    this.shapes[i].bottomLeftY)
+                                || this.intersect(
+                                    this.shapes[this.activeShape].rightTopX,
+                                    this.shapes[this.activeShape].rightTopY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].leftTopX,
+                                    this.shapes[i].leftTopY,
+                                    this.shapes[i].rightTopX,
+                                    this.shapes[i].rightTopY)
+                                ||this.intersect(
+                                    this.shapes[this.activeShape].rightTopX,
+                                    this.shapes[this.activeShape].rightTopY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].rightTopX,
+                                    this.shapes[i].rightTopY,
+                                    this.shapes[i].bottomRightX,
+                                    this.shapes[i].bottomRightY)
+                                ||  this.intersect(
+                                    this.shapes[this.activeShape].rightTopX,
+                                    this.shapes[this.activeShape].rightTopY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].bottomRightX,
+                                    this.shapes[i].bottomRightY,
+                                    this.shapes[i].bottomLeftX,
+                                    this.shapes[i].bottomLeftY  //right-line
+                                )
+                                || this.intersect(
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].leftTopX,
+                                    this.shapes[i].leftTopY,
+                                    this.shapes[i].bottomLeftX,
+                                    this.shapes[i].bottomLeftY)
+                                || this.intersect(
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].leftTopX,
+                                    this.shapes[i].leftTopY,
+                                    this.shapes[i].rightTopX,
+                                    this.shapes[i].rightTopY)
+                                ||this.intersect(
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].rightTopX,
+                                    this.shapes[i].rightTopY,
+                                    this.shapes[i].bottomRightX,
+                                    this.shapes[i].bottomRightY)
+                                ||  this.intersect(
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[i].bottomRightX,
+                                    this.shapes[i].bottomRightY,
+                                    this.shapes[i].bottomLeftX,
+                                    this.shapes[i].bottomLeftY  //bottom-line
+                            ))
+                            { this.over = true
+                                this.shape(
+                                    this.shapes[this.activeShape].leftTopX,
+                                    this.shapes[this.activeShape].leftTopY,
+                                    this.shapes[this.activeShape].rightTopX,
+                                    this.shapes[this.activeShape].rightTopY,
+                                    this.shapes[this.activeShape].bottomRightX,
+                                    this.shapes[this.activeShape].bottomRightY,
+                                    this.shapes[this.activeShape].bottomLeftX,
+                                    this.shapes[this.activeShape].bottomLeftY,
+                                    true,
+                                    this.over)
+                                requestAnimationFrame(this.allshapes);
+                                break
+                            }
+                                    this.over = false
+                                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                                    this.shape(
+                                        this.shapes[this.activeShape].leftTopX,
+                                        this.shapes[this.activeShape].leftTopY,
+                                        this.shapes[this.activeShape].rightTopX,
+                                        this.shapes[this.activeShape].rightTopY,
+                                        this.shapes[this.activeShape].bottomRightX,
+                                        this.shapes[this.activeShape].bottomRightY,
+                                        this.shapes[this.activeShape].bottomLeftX,
+                                        this.shapes[this.activeShape].bottomLeftY,
+                                        true,
+                                        this.over)
+                                requestAnimationFrame(this.allshapes);
+                            }}
                 } else {
-                    this.state = 'active'
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     this.shape(
                         this.shapes[this.activeShape].leftTopX,
@@ -369,7 +680,9 @@
                         this.shapes[this.activeShape].bottomRightY,
                         this.shapes[this.activeShape].bottomLeftX,
                         this.shapes[this.activeShape].bottomLeftY,
-                        this.state)
+                        this.shapes[this.activeShape].active,
+                        this.shapes[this.activeShape].over,
+                        )
                     this.allshapes()
                 }
             },
@@ -392,18 +705,28 @@
                     this.shapes[this.activeShape].bottomLeftX = this.mouse.x
                     this.shapes[this.activeShape].bottomLeftY = this.mouse.y
                 }
-                this.shapes[this.activeShape].state = this.state
+                this.shapes[this.activeShape].over = this.over
                 this.allshapes()
                 this.canvas.onmousedown = null
                 this.canvas.onmousemove = null
             },
-
+            intersect(x1,y1,x2,y2,x3,y3,x4,y4) {
+                let det, gamma, lambda;
+                det = (x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1);
+                if (det === 0) {
+                    return false;
+                } else {
+                    lambda = ((y4 - y3) * (x4 - x1) + (x3 - x4) * (y4 - y1)) / det;
+                    gamma = ((y1 - y2) * (x4 - x1) + (x2 - x1) * (y4 - y1)) / det;
+                    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+                }
+            }
         },
         mounted() {
             this.canvas = this.$refs.canvasArea
             this.context = this.canvas.getContext("2d")
-            this.windowWidth = document.body.clientWidth;
-            this.windowHeight = document.body.clientHeight;
+            this.windowWidth = window.innerWidth;
+            this.windowHeight = window.innerHeight;
 
         },
         updated() {
@@ -414,6 +737,7 @@
 
 <style scoped>
     .canvas {
+        display: block;
         border: 1px solid black;
 
     }
