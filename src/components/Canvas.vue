@@ -423,7 +423,7 @@
                     this.context.strokeStyle = 'green'
                     this.context.stroke();
                 }
-                if (over == true) {
+                if (active == true && over == true) {
                     this.context.beginPath()
                     this.context.arc(x1, y1, 3, 0, 2 * Math.PI)
                     this.context.strokeStyle = 'red'
@@ -440,6 +440,18 @@
                     this.context.arc(x4, y4, 3, 0, 2 * Math.PI)
                     this.context.strokeStyle = 'red'
                     this.context.stroke();
+                    this.context.beginPath()
+                    this.context.moveTo(x1, y1);
+                    this.context.lineTo(x2, y2)
+                    this.context.lineTo(x3, y3)
+                    this.context.lineTo(x4, y4)
+                    this.context.lineTo(x1, y1)
+                    this.context.closePath()
+                    this.context.lineWidth = 3;
+                    this.context.strokeStyle = 'red'
+                    this.context.stroke();
+                }
+                if (active == false && over == true) {
                     this.context.beginPath()
                     this.context.moveTo(x1, y1);
                     this.context.lineTo(x2, y2)
